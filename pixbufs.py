@@ -20,8 +20,6 @@ class PixbufLoading(Window):
         image_scaled = Gtk.Image.new_from_pixbuf(pixbuf_scaled)
         box.add(image_scaled)
 
-        print dir(pixbuf_scaled.props)
-
         self.add(box)
 
 
