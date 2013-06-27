@@ -34,6 +34,25 @@ class SaturateDemo(Window):
         self.add(image)
 
 
+class OpacityDemo(Window):
+    def post_init(self):
+        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(
+            "data/firefox.jpg", 120, 120
+        )
+        transparent_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(
+            "data/transparent.png", 120, 120
+        )
+        width = pixbuf.get_width()
+        height = pixbuf.get_height()
+        transparent_pixbuf = transparent_pixbuf.scale_simple(
+            width, height, GdkPixbuf.InterpType.NEAREST
+        )
+        pixbuf.composite(transparent_pixbuf, 0, 0, width, height,
+                         0, 0, 1, 1, GdkPixbuf.InterpType.NEAREST, 50)
+        image = Gtk.Image.new_from_pixbuf(transparent_pixbuf)
+        self.add(image)
+
+
 class DrawEvent(Window):
     def post_init(self):
         pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(
@@ -48,5 +67,5 @@ class DrawEvent(Window):
 
 
 if __name__ == "__main__":
-    DrawEvent()
+    OpacityDemo()
     Gtk.main()
