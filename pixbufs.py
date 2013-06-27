@@ -1,21 +1,7 @@
 from gi.repository import Gtk, GdkPixbuf
+from common import Window
 
 IMAGE = 'data/firefox.jpg'
-
-
-class Window(Gtk.Window):
-    def __init__(self):
-        super(Window, self).__init__()
-        self.connect('destroy', self.quit)
-        self.set_default_size(400, 400)
-        self.post_init()
-        self.show_all()
-
-    def post_init(self):
-        pass
-
-    def quit(self, window):
-        Gtk.main_quit()
 
 
 class PixbufLoading(Window):
@@ -49,6 +35,20 @@ class SaturateDemo(Window):
         image = Gtk.Image.new_from_pixbuf(desaturated)
         self.add(image)
 
+
+class DrawEvent(Window):
+    def post_init(self):
+        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(
+            "data/firefox.jpg", 120, 120
+        )
+        image = Gtk.Image.new_from_pixbuf(pixbuf)
+        image.connect('draw', self.on_draw)
+        self.add(image)
+
+    def on_draw(self, image, cairo_context):
+        print "Drawing image"
+
+
 if __name__ == "__main__":
-    PixbufLoading()
+    DrawEvent()
     Gtk.main()
