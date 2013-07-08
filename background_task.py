@@ -8,7 +8,23 @@ from gi.repository import Gtk, Gdk, GObject
 from common import Window
 
 
-def async_call(func, on_done):
+class AsyncJob(threading.Thread):
+
+    def __init__(self, monitor, callback):
+        self.progress = 0
+        self.callback = callback
+        self.monitor = monitor
+        super(AsyncJob, self).__init__()
+
+    def run(self):
+        while(self.progress < 100):
+            self.progress += 1
+            time.sleep(0.05)
+            GObject.idle_add(self.monitor, self.progress)
+        self.callback(self.progress, None)
+
+
+def async_call(func, on_done, *args, **kwargs):
     """
     Starts a new thread that calls func and schedules on_done to be run (on the
     main thread) when GTK is not busy.
@@ -26,18 +42,18 @@ def async_call(func, on_done):
     if not on_done:
         on_done = lambda r, e: None
 
-    def do_call():
+    def do_call(*args, **kwargs):
         result = None
         error = None
 
         try:
-            result = func()
+            result = func(*args, **kwargs)
         except Exception, err:
             error = err
 
         GObject.idle_add(lambda: on_done(result, error))
 
-    thread = threading.Thread(target=do_call)
+    thread = threading.Thread(target=do_call, args=args, kwargs=kwargs)
     thread.start()
 
 
@@ -95,48 +111,55 @@ def async_method(on_done=None):
     return wrapper
 
 
+def grep_directory(search_terms, with_errors=False):
+    if with_errors:
+        raise ValueError("Crashing")
+    print "search for", search_terms
+    start_time = time.time()
+    directory = "/tmp"
+    stdout, stderr = subprocess.Popen(
+        ["grep", "-ri", search_terms, directory],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE).communicate()
+    return (time.time() - start_time, stdout)
+
+
 class TaskWindow(Window):
     def post_init(self):
+        self.set_default_size(400, 50)
         box = Gtk.HBox()
         box.set_border_width(15)
-        launch_button = Gtk.Button("Launch")
-        launch_button.connect("clicked", self.on_launch)
-        box.add(launch_button)
+        self.launch_button = Gtk.Button("Launch")
+        self.launch_button.connect("clicked", self.on_launch)
+        box.pack_start(self.launch_button, False, False, 20)
+
+        self.progress_bar = Gtk.ProgressBar()
+        self.progress_bar.set_show_text(True)
+        box.pack_start(self.progress_bar, True, False, 20)
 
         self.spinner = Gtk.Spinner()
-        box.pack_start(self.spinner, False, False, 10)
+        box.pack_start(self.spinner, False, False, 20)
 
         self.add(box)
 
-    @async_method(on_done=lambda self, result, error: self.on_finish(result,
-                                                                     error))
-    def grep_directory(search_terms, with_errors=False):
-        if with_errors:
-            raise ValueError
-        start_time = time.time()
-        directory = "/tmp"
-        stdout, stderr = subprocess.Popen(
-            ["grep", "-ri", search_terms, directory],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE).communicate()
-        return time.time() - start_time
-
     def on_launch(self, widget):
         self.spinner.start()
-        print "launching"
-        self.grep_directory('ubuntu', with_errors=True)
+        self.launch_button.set_sensitive(False)
+        job = AsyncJob(self.on_progress, self.on_finish)
+        job.start()
 
     def on_finish(self, result, error):
-        print "done"
         self.spinner.stop()
-        print result
-        print error
+        self.launch_button.set_sensitive(True)
+        print "result:", result
+        print "error:", error
 
+    def on_progress(self, progress):
+        self.progress_bar.set_fraction(progress / 100.0)
+        self.progress_bar.set_text("%d %%" % progress)
 
 if __name__ == "__main__":
     TaskWindow()
     Gdk.threads_init()
     GObject.threads_init()
-    #Gdk.threads_enter()
     Gtk.main()
-    #Gdk.threads_leave()
