@@ -5,9 +5,8 @@ from common import Window
 
 
 class SidebarTreeView(Gtk.TreeView):
-    def __init__(self):
+    def __init__(self, path):
         self.model = Gtk.TreeStore(str, GdkPixbuf.Pixbuf, int, bool)
-        path = os.path.expanduser("~/Music")
         self.dirwalk(path)
 
         super(SidebarTreeView, self).__init__(model=self.model)
@@ -25,7 +24,6 @@ class SidebarTreeView(Gtk.TreeView):
 
     def dirwalk(self, path, parent=None, depth=0):
         for f in sorted(os.listdir(path)):
-            print f
             fullname = os.path.join(path, f)
             fdata = os.stat(fullname)
             is_folder = stat.S_ISDIR(fdata.st_mode)
@@ -34,17 +32,18 @@ class SidebarTreeView(Gtk.TreeView):
                                        16, 0)
             li = self.model.append(parent, [f, img, fdata.st_size, is_folder])
             if is_folder:
-                if f == 'A':
+                if depth < 1:
                     self.dirwalk(fullname, li, depth + 1)
 
 
 class SidebarWindow(Window):
     def post_init(self):
+        path = os.path.expanduser("~/Music")
         paned = Gtk.Paned()
         self.add(paned)
         b = Gtk.Button("bliblu")
         paned.add2(b)
-        self.treeview = SidebarTreeView()
+        self.treeview = SidebarTreeView(path)
 
         sw = Gtk.ScrolledWindow()
         sw.add(self.treeview)
