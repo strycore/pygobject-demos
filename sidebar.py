@@ -1,11 +1,56 @@
-from gi.repository import Gtk
+import os
+import stat
+from gi.repository import Gtk, GdkPixbuf
 from common import Window
+
+
+class SidebarTreeView(Gtk.TreeView):
+    def __init__(self):
+        self.model = Gtk.TreeStore(str, GdkPixbuf.Pixbuf, int, bool)
+        path = os.path.expanduser("~/Music")
+        self.dirwalk(path)
+
+        super(SidebarTreeView, self).__init__(model=self.model)
+
+        column = Gtk.TreeViewColumn("Files")
+        text_renderer = Gtk.CellRendererText()
+        icon_renderer = Gtk.CellRendererPixbuf()
+        icon_renderer.set_property('stock-size', 16)
+        column.pack_start(icon_renderer, False)
+        column.pack_start(text_renderer, True)
+        column.add_attribute(text_renderer, "text", 0)
+        column.add_attribute(icon_renderer, "pixbuf", 1)
+        self.append_column(column)
+        self.set_headers_visible(False)
+
+    def dirwalk(self, path, parent=None, depth=0):
+        for f in sorted(os.listdir(path)):
+            print f
+            fullname = os.path.join(path, f)
+            fdata = os.stat(fullname)
+            is_folder = stat.S_ISDIR(fdata.st_mode)
+            icon_theme = Gtk.IconTheme.get_default()
+            img = icon_theme.load_icon("folder" if is_folder else "document",
+                                       16, 0)
+            li = self.model.append(parent, [f, img, fdata.st_size, is_folder])
+            if is_folder:
+                if f == 'A':
+                    self.dirwalk(fullname, li, depth + 1)
 
 
 class SidebarWindow(Window):
     def post_init(self):
         paned = Gtk.Paned()
         self.add(paned)
+        b = Gtk.Button("bliblu")
+        paned.add2(b)
+        self.treeview = SidebarTreeView()
+
+        sw = Gtk.ScrolledWindow()
+        sw.add(self.treeview)
+
+        paned.add1(sw)
+        paned.set_position(150)
 
 if __name__ == "__main__":
     SidebarWindow()
