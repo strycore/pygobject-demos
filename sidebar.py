@@ -12,6 +12,7 @@ class SidebarTreeView(Gtk.TreeView):
         super(SidebarTreeView, self).__init__(model=self.model)
 
         column = Gtk.TreeViewColumn("Files")
+        column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
         text_renderer = Gtk.CellRendererText()
         icon_renderer = Gtk.CellRendererPixbuf()
         icon_renderer.set_property('stock-size', 16)
@@ -21,6 +22,7 @@ class SidebarTreeView(Gtk.TreeView):
         column.add_attribute(icon_renderer, "pixbuf", 1)
         self.append_column(column)
         self.set_headers_visible(False)
+        self.set_fixed_height_mode(True)
 
     def dirwalk(self, path, parent=None, depth=0):
         for f in sorted(os.listdir(path)):
