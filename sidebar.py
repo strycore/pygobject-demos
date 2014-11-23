@@ -1,6 +1,6 @@
 import os
 import stat
-from gi.repository import Gtk, GdkPixbuf
+from gi.repository import Gtk, GdkPixbuf, Gdk
 from common import Window
 
 
@@ -45,11 +45,24 @@ class SidebarWindow(Window):
         paned.add2(b)
         self.treeview = SidebarTreeView(path)
 
-        sw = Gtk.ScrolledWindow()
-        sw.add(self.treeview)
+        self.sidebar_scrolled = Gtk.ScrolledWindow()
+        self.sidebar_scrolled.add(self.treeview)
 
-        paned.add1(sw)
+        paned.add1(self.sidebar_scrolled)
         paned.set_position(150)
+
+        self.connect('key-press-event', self.on_keypress)
+
+    def on_keypress(self, widget, event):
+        if event.keyval == Gdk.KEY_F9:
+            self.toggle_sidebar()
+
+    def toggle_sidebar(self):
+        if self.sidebar_scrolled.get_visible():
+            self.sidebar_scrolled.hide()
+        else:
+            self.sidebar_scrolled.show()
+
 
 if __name__ == "__main__":
     SidebarWindow()
