@@ -3,8 +3,14 @@ import stat
 from gi.repository import Gtk, GdkPixbuf, Gdk
 from common import Window
 
+LABEL = 0
+ICON = 1
+SIZE = 2
+IS_FOLDER = 3
+
 
 class SidebarTreeView(Gtk.TreeView):
+
     def __init__(self, path):
         self.model = Gtk.TreeStore(str, GdkPixbuf.Pixbuf, int, bool)
         self.dirwalk(path)
@@ -18,8 +24,8 @@ class SidebarTreeView(Gtk.TreeView):
         icon_renderer.set_property('stock-size', 16)
         column.pack_start(icon_renderer, False)
         column.pack_start(text_renderer, True)
-        column.add_attribute(text_renderer, "text", 0)
-        column.add_attribute(icon_renderer, "pixbuf", 1)
+        column.add_attribute(text_renderer, "text", LABEL)
+        column.add_attribute(icon_renderer, "pixbuf", ICON)
         self.append_column(column)
         self.set_headers_visible(False)
         self.set_fixed_height_mode(True)
@@ -43,9 +49,10 @@ class SidebarWindow(Window):
         path = os.path.expanduser("~/Music")
         paned = Gtk.Paned()
         self.add(paned)
-        b = Gtk.Button("bliblu")
-        paned.add2(b)
+        self.label = Gtk.Label("")
+        paned.add2(self.label)
         self.treeview = SidebarTreeView(path)
+        self.treeview.connect('cursor-changed', self.on_cursor_changed)
 
         self.sidebar_scrolled = Gtk.ScrolledWindow()
         self.sidebar_scrolled.add(self.treeview)
@@ -54,6 +61,11 @@ class SidebarWindow(Window):
         paned.set_position(150)
 
         self.connect('key-press-event', self.on_keypress)
+
+    def on_cursor_changed(self, widget, data=None):
+        selection = widget.get_selection()
+        model, iter = selection.get_selected()
+        self.label.set_text(model.get_value(iter, LABEL))
 
     def on_keypress(self, widget, event):
         if event.keyval == Gdk.KEY_F9:
