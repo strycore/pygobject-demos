@@ -14,6 +14,10 @@ class Window(Gtk.Window):
         self.set_position(Gtk.WindowPosition.CENTER)
         self.post_init()
         self.show_all()
+        self.after_init()
 
     def post_init(self):
+        pass
+
+    def after_init():
         pass

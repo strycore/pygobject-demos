@@ -1,6 +1,7 @@
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, GdkPixbuf
+from gi.repository import Gtk
+import utils
 from common import Window
 
 
@@ -16,10 +17,7 @@ class CustomIconWindow(Window):
         self.add(box2)
 
     def set_image(self, filename):
-        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(filename, 64, 64)
-
-        image = Gtk.Image()
-        image.set_from_pixbuf(pixbuf)
+        image = utils.get_image(filename, (64, 64))
         self.button.set_image(image)
 
     def on_button_clicked(self, widget):
