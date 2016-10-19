@@ -19,5 +19,5 @@ class Window(Gtk.Window):
     def post_init(self):
         pass
 
-    def after_init():
+    def after_init(self):
         pass

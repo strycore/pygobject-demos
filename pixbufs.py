@@ -1,3 +1,5 @@
+import gi
+gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GdkPixbuf
 from common import Window
 
@@ -67,5 +69,6 @@ class DrawEvent(Window):
 
 
 if __name__ == "__main__":
-    OpacityDemo()
+    # OpacityDemo()
+    PixbufLoading()
     Gtk.main()
