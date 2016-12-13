@@ -7,7 +7,6 @@ from common import Window
 
 class EditableGrid(Gtk.Grid):
     def __init__(self, data, columns):
-        self.model = data
         self.columns = columns
         super(EditableGrid, self).__init__()
         self.set_column_homogeneous(True)
@@ -20,7 +19,7 @@ class EditableGrid(Gtk.Grid):
         self.set_margin_right(10)
 
         self.liststore = Gtk.ListStore(str, str)
-        for item in self.model:
+        for item in data:
             self.liststore.append(list(item))
 
         self.treeview = Gtk.TreeView.new_with_model(self.liststore)
@@ -65,12 +64,26 @@ class EditableGrid(Gtk.Grid):
     def on_text_edited(self, widget, path, text, field):
         self.liststore[path][field] = text
 
+    def get_data(self):
+        model_data = []
+        for row in self.liststore:
+            model_data.append([col for col in row])
+        return model_data
+
 
 class EditableGridWindow(Window):
     def post_init(self):
-        self.model = dict(os.environ).items()[:4]
-        self.editable_grid = EditableGrid(self.model, ["Key", "Value"])
-        self.add(self.editable_grid)
+        vbox = Gtk.VBox()
+        self.add(vbox)
+        model = dict(os.environ).items()[:4]
+        self.editable_grid = EditableGrid(model, ["Key", "Value"])
+        vbox.add(self.editable_grid)
+        button = Gtk.Button("Get data")
+        button.connect('clicked', self.on_button_clicked)
+        vbox.add(button)
+
+    def on_button_clicked(self, widget, data=None):
+        print(self.editable_grid.get_data())
 
 if __name__ == "__main__":
     EditableGridWindow()
