@@ -5,19 +5,19 @@ from gi.repository import Gtk, GObject
 from common import Window
 
 
-class EditableGridWindow(Window):
-    def post_init(self):
-        self.model = dict(os.environ).items()[:4]
-        self.grid = Gtk.Grid()
-        self.grid.set_column_homogeneous(True)
-        self.grid.set_row_homogeneous(True)
-        self.grid.set_row_spacing(10)
-        self.grid.set_column_spacing(10)
-        self.grid.set_margin_bottom(10)
-        self.grid.set_margin_top(10)
-        self.grid.set_margin_left(10)
-        self.grid.set_margin_right(10)
-        self.add(self.grid)
+class EditableGrid(Gtk.Grid):
+    def __init__(self, data, columns):
+        self.model = data
+        self.columns = columns
+        super(EditableGrid, self).__init__()
+        self.set_column_homogeneous(True)
+        self.set_row_homogeneous(True)
+        self.set_row_spacing(10)
+        self.set_column_spacing(10)
+        self.set_margin_bottom(10)
+        self.set_margin_top(10)
+        self.set_margin_left(10)
+        self.set_margin_right(10)
 
         self.liststore = Gtk.ListStore(str, str)
         for item in self.model:
@@ -25,7 +25,7 @@ class EditableGridWindow(Window):
 
         self.treeview = Gtk.TreeView.new_with_model(self.liststore)
         self.treeview.set_grid_lines(Gtk.TreeViewGridLines.BOTH)
-        for i, column_title in enumerate(["Key", "Value"]):
+        for i, column_title in enumerate(self.columns):
             renderer = Gtk.CellRendererText()
             renderer.set_property("editable", True)
             renderer.connect("edited", self.on_text_edited, i)
@@ -49,10 +49,10 @@ class EditableGridWindow(Window):
         self.scrollable_treelist.set_vexpand(True)
         self.scrollable_treelist.add(self.treeview)
 
-        self.grid.attach(self.scrollable_treelist, 0, 0, 8, 5)
-        self.grid.attach(self.add_button, 8 - len(self.buttons), 6, 1, 1)
+        self.attach(self.scrollable_treelist, 0, 0, 8, 5)
+        self.attach(self.add_button, 8 - len(self.buttons), 6, 1, 1)
         for i, button in enumerate(self.buttons[1:]):
-            self.grid.attach_next_to(button, self.buttons[i], Gtk.PositionType.RIGHT, 1, 1)
+            self.attach_next_to(button, self.buttons[i], Gtk.PositionType.RIGHT, 1, 1)
 
     def on_add(self, widget):
         self.liststore.append(["", ""])
@@ -65,6 +65,12 @@ class EditableGridWindow(Window):
     def on_text_edited(self, widget, path, text, field):
         self.liststore[path][field] = text
 
+
+class EditableGridWindow(Window):
+    def post_init(self):
+        self.model = dict(os.environ).items()[:4]
+        self.editable_grid = EditableGrid(self.model, ["Key", "Value"])
+        self.add(self.editable_grid)
 
 if __name__ == "__main__":
     EditableGridWindow()
