@@ -6,6 +6,10 @@ from common import Window
 
 
 class EditableGrid(Gtk.Grid):
+    __gsignals__ = {
+        "changed": (GObject.SIGNAL_RUN_FIRST, None, ())
+    }
+
     def __init__(self, data, columns):
         self.columns = columns
         super(EditableGrid, self).__init__()
@@ -55,14 +59,17 @@ class EditableGrid(Gtk.Grid):
 
     def on_add(self, widget):
         self.liststore.append(["", ""])
+        self.emit('changed')
 
     def on_delete(self, widget):
         selection = self.treeview.get_selection()
         liststore, iter = selection.get_selected()
         self.liststore.remove(iter)
+        self.emit('changed')
 
     def on_text_edited(self, widget, path, text, field):
         self.liststore[path][field] = text
+        self.emit('changed')
 
     def get_data(self):
         model_data = []
@@ -77,10 +84,14 @@ class EditableGridWindow(Window):
         self.add(vbox)
         model = dict(os.environ).items()[:4]
         self.editable_grid = EditableGrid(model, ["Key", "Value"])
+        self.editable_grid.connect('changed', self.on_grid_changed)
         vbox.add(self.editable_grid)
         button = Gtk.Button("Get data")
         button.connect('clicked', self.on_button_clicked)
         vbox.add(button)
+
+    def on_grid_changed(self, widget, data=None):
+        print widget.get_data()
 
     def on_button_clicked(self, widget, data=None):
         print(self.editable_grid.get_data())
