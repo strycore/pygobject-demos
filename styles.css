@@ -1,0 +1,24 @@
+.h1 {
+    font-size: 24px;
+}
+
+.h2 {
+    font-weight: 300;
+    font-size: 18px;
+}
+
+.h3 {
+    font-size: 11px;
+}
+
+.h4 {
+    color: alpha (@text_color, 0.7);
+    font-weight: bold;
+    text-shadow: 0 1px @text_shadow_color;
+}
+
+.h4 {
+    padding-bottom: 6px;
+    padding-top: 6px;
+}
+
